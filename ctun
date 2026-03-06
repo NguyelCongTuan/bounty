@@ -1,0 +1,244 @@
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+
+getgenv().Key = "818a3bc167a8d80cbf3aaad2"
+getgenv().Setting = {
+    ["Hitbox"] = {
+        ["Enabled"] = true,
+        ["Size"] = 15, 
+        ["Transparency"] = 0.7,
+    },
+    ["Team"] = "Pirate",
+    ["Method Click"] = {
+        ["Aim M1 Fruit"] = {["Enabled"] = false, ["Distance"] = 15000, ["Smoothness"] = 0.2},
+        ["Click Gun"] = false,
+        ["Click Melee"] = false,
+        ["Click Sword"] = false,
+        ["Click Fruit"] = true,
+        ["LowHealth"] = 0,
+        ["Delay Click"] = 0.12, 
+        ["Bypass_Suspicious"] = {
+            ["Enabled"] = true,
+            ["Smart_Delay"] = 0.3, 
+            ["Clicks_Per_Pause"] = {4, 6}, 
+            ["Random_Interval"] = true 
+        }
+    },
+    ["Race V4"] = {["Enable"] = true},
+    ["Webhook"] = {["Enabled"] = false, ["Url Webhook"] = ""},
+    ["Misc"] = {
+        ["AutoBuyRandomandStoreFruit"] = true, 
+        ["AutoBuySurprise"] = true,
+        ["Auto Jump"] = true,
+        ["Show Notification"] = true
+    },
+    ["SafeZone"] = {["Enable"] = true, ["LowHealth"] = 4500, ["MaxHealth"] = 7000, ["Teleport Y"] = 2000},
+    ["Method Use Skill"] = {["Use Random"] = false, ["Use Number"] = false},
+    ["Use random skill if player target low health"] = {["Enabled"] = false, ["Low Health"] = 4000},
+    ["Use Portal Teleport"] = false,
+    ["Target Time"] = 5,
+    ["Stuck Time"] = 5,
+    ["Aim Prediction"] = 0.185,
+    ["Select Region"] = {
+        ["Enabled"] = true,
+        ["Region"] = {["Singapore"] = true, ["United States"] = false}
+    },
+    ["Ignore Devil Fruit"] = {"Portal-Portal","Human-Human"},
+    ["Dodge Skill Player"] = false,
+    ["Spam Dash"] = false,
+    ["Equip Weapon"] = {
+        ["Enabled"] = false,
+        ["Melee"] = {["Enabled"] = false, ["Name Weapon"] = ""},
+        ["Sword"] = {["Enabled"] = false, ["Name Weapon"] = ""},
+        ["Gun"] = {["Enabled"] = false, ["Name Weapon"] = ""}
+    },
+    ["Weapons"] = {
+        ["Melee"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 2},
+                ["X"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 3},
+                ["C"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 5}
+            }
+        },
+        ["Blox Fruit"] = {
+            ["Enable"] = true,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = false, ["HoldTime"] = 0.3, ["Number"] = 4},
+                ["X"] = {["Enable"] = false, ["HoldTime"] = 0.3, ["Number"] = 6},
+                ["C"] = {["Enable"] = false, ["HoldTime"] = 0, ["Number"] = 0},
+                ["V"] = {["Enable"] = false, ["HoldTime"] = 0, ["Number"] = 0},
+                ["F"] = {["Enable"] = false, ["HoldTime"] = 0, ["Number"] = 8}
+            }
+        },
+        ["Gun"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 1},
+                ["X"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 7}
+            }
+        },
+        ["Sword"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = false, ["HoldTime"] = 0, ["Number"] = 0},
+                ["X"] = {["Enable"] = true, ["HoldTime"] = 0, ["Number"] = 0}
+            }
+        }
+    },
+    ["LockFps"] = {["Disable"] = false, ["FPS"] = 60},
+    ["DeleteMap"] = false,
+    ["AntiAFK Move"] = {["Enabled"] = true, ["Delay"] = 1.2},
+
+    ["Targeting_Advanced"] = {
+        ["Priority_Mode"] = "Lowest Health",
+        ["Ignore_Friends"] = true,
+        ["Ignore_SafeZone"] = true,
+        ["Ignore_ForceField"] = true
+    }
+}
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local VIM = game:GetService("VirtualInputManager")
+local StarterGui = game:GetService("StarterGui")
+local lp = Players.LocalPlayer
+
+local function SendMessage(title, text)
+    if getgenv().Setting["Misc"]["Show Notification"] then
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {Title = title, Text = text, Duration = 5})
+        end)
+    end
+end
+
+SendMessage("MayChemXeoCan", "Config By maychemxeocan")
+
+local CurrentTarget = nil
+
+task.spawn(function()
+    local guiParent = pcall(gethui) and gethui() or game:GetService("CoreGui") or lp:WaitForChild("PlayerGui")
+    if guiParent:FindFirstChild("FPS_Tracker_Pro") then guiParent.FPS_Tracker_Pro:Destroy() end
+    local fpsGui = Instance.new("ScreenGui", guiParent)
+    fpsGui.Name = "FPS_Tracker_Pro"
+    local fpsLabel = Instance.new("TextLabel", fpsGui)
+    fpsLabel.Size, fpsLabel.Position = UDim2.new(0, 100, 0, 30), UDim2.new(1, -110, 0.4, 0)
+    fpsLabel.BackgroundTransparency, fpsLabel.BackgroundColor3 = 0.5, Color3.new(0,0,0)
+    fpsLabel.TextColor3, fpsLabel.TextScaled, fpsLabel.Font = Color3.new(0,1,0), true, Enum.Font.GothamBold
+    Instance.new("UICorner", fpsLabel).CornerRadius = UDim.new(0, 6)
+
+    local lastTime, frameCount = tick(), 0
+    RunService.RenderStepped:Connect(function()
+        frameCount = frameCount + 1
+        if tick() - lastTime >= 1 then
+            local fps = math.floor(frameCount / (tick() - lastTime))
+            fpsLabel.Text = "FPS: " .. fps
+            fpsLabel.TextColor3 = fps >= 45 and Color3.new(0, 1, 0) or (fps >= 30 and Color3.new(1, 1, 0) or Color3.new(1, 0, 0))
+            frameCount, lastTime = 0, tick()
+        end
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(4)
+        if getgenv().Setting["Misc"] and getgenv().Setting["Misc"]["Auto Jump"] then
+            local char = lp.Character
+            local humanoid = char and char:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+                task.wait(0.05)
+                VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    local keys = {Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D}
+    while true do
+        task.wait(math.random(1, 3) / 10) 
+        if CurrentTarget and lp.Character then
+            local humanoid = lp.Character:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local randomKey = keys[math.random(1, #keys)]
+                
+                VIM:SendKeyEvent(true, randomKey, false, game)
+                task.wait(math.random(5, 15) / 100) 
+                VIM:SendKeyEvent(false, randomKey, false, game)
+            end
+        end
+    end
+end)
+
+local function GetBestTarget()
+    if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return nil end
+    local cfg_adv = getgenv().Setting["Targeting_Advanced"]
+    local lpPos = lp.Character.HumanoidRootPart.Position
+    local bestPlayer, minHealth, maxDist = nil, math.huge, 15000
+    for _, v in ipairs(Players:GetPlayers()) do
+        if v ~= lp and v.Team ~= lp.Team and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            if cfg_adv.Ignore_Friends and lp:IsFriendsWith(v.UserId) then continue end
+            if cfg_adv.Ignore_ForceField and v.Character:FindFirstChildOfClass("ForceField") then continue end
+            local hrp = v.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local dist = (hrp.Position - lpPos).Magnitude
+                if dist <= maxDist then
+                    if cfg_adv.Priority_Mode == "Lowest Health" then
+                        if v.Character.Humanoid.Health < minHealth then minHealth = v.Character.Humanoid.Health; bestPlayer = v.Character end
+                    else
+                        if dist < maxDist then maxDist = dist; bestPlayer = v.Character end
+                    end
+                end
+            end
+        end
+    end
+    return bestPlayer
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local m_cfg = getgenv().Setting["Method Click"]
+        
+        if CurrentTarget and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+            if m_cfg["Click Fruit"] then
+                local tool = lp.Character:FindFirstChildOfClass("Tool")
+                if not (tool and (tool.ToolTip == "Blox Fruit" or string.find(tool.Name, "Fruit"))) then
+                    for _, t in ipairs(lp.Backpack:GetChildren()) do
+                        if t:IsA("Tool") and (t.ToolTip == "Blox Fruit" or string.find(t.Name, "Fruit")) then
+                            lp.Character.Humanoid:EquipTool(t); break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    CurrentTarget = GetBestTarget()
+    if lp.Character and CurrentTarget then
+        if getgenv().Setting.Hitbox.Enabled then
+            local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
+            if targetHRP then
+                targetHRP.Size = Vector3.new(getgenv().Setting.Hitbox.Size, getgenv().Setting.Hitbox.Size, getgenv().Setting.Hitbox.Size)
+                targetHRP.Transparency = getgenv().Setting.Hitbox.Transparency
+                targetHRP.CanCollide = false
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/refs/heads/main/BananaCat-BountyEz.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/17Hacking/Script/main/FastAttackW-Azure.lua"))()
+    end)
+end)
+
+if getgenv().Setting.DeleteMap then
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if v:IsA("Part") and v.Transparency < 1 then v.CanCollide = false end
+    end
+end
